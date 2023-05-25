@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
-from users.views import SignUpView
+from users.views import SignUpView, TokenView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,5 +26,5 @@ urlpatterns = [
         name='redoc'
     ),
     path('api/v1/auth/signup/', SignUpView.as_view(), name='sign_up'),
-    #path('auth/token/', TokenView.as_view(), name='auth_token'),
+    path('api/v1/auth/token/', TokenView.as_view(), name='auth_token'),
 ]
