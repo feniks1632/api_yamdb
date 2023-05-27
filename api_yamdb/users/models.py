@@ -35,3 +35,10 @@ class User(AbstractUser):
         default='user'
     )
     confirmation_code = models.CharField(max_length=6)
+
+    @property
+    def is_admin(self):
+        return (self.role == 'admin' or self.is_superuser)
+    
+
+
