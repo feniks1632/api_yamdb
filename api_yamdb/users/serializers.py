@@ -14,7 +14,10 @@ class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)
     username = serializers.CharField(required=True)
 
-
+    class Meta:
+        model = User
+        fields = ('email', 'username')
+        
     def validate(self, data):
         email = data.get('email')
         username = data.get('username')
@@ -27,6 +30,12 @@ class SignUpSerializer(serializers.ModelSerializer):
         
         if not re.match(r'^[\w.@+-]+\Z', username):
             raise serializers.ValidationError('Username contains invalid characters.')
+
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError('This email is already in use.')
+
+        if User.objects.filter(username=username).exists():
+            raise serializers.ValidationError('This username is already in use.')
         
         if username == 'me':
             raise serializers.ValidationError('Invalid username')
@@ -54,9 +63,7 @@ class SignUpSerializer(serializers.ModelSerializer):
                
         return User.objects.filter(username=username, email=email)
     
-    class Meta:
-        model = User
-        fields = ('email', 'username')
+    
     
 
 class TokenSerializer(serializers.Serializer):
