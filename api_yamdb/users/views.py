@@ -19,11 +19,22 @@ class SignUpView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
+        existing_user = User.objects.filter(email=email, username=username, is_active=True).first()
+        if existing_user:
+            response_data = {
+                'email': existing_user.email,
+                'username': existing_user.username,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
         response_data = {
             'email': user.email,
             'username': user.username,
         }
-        return Response(response_data, status=status.HTTP_200_OK)
+        return Response(response_data, status=status.HTTP_201_CREATED)
     
 class TokenView(APIView):
     def post(self, request):
@@ -77,5 +88,3 @@ class UsersView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
-    

@@ -11,12 +11,18 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 
 class SignUpSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True)
 
     class Meta:
         model = User
         fields = ('email', 'username')
+        extra_kwargs = {
+            'username' : {
+                'validators': []
+            },
+            'email' : {
+                'validators': []
+            }
+        }
         
     def validate(self, data):
         email = data.get('email')
@@ -30,15 +36,17 @@ class SignUpSerializer(serializers.ModelSerializer):
         
         if not re.match(r'^[\w.@+-]+\Z', username):
             raise serializers.ValidationError('Username contains invalid characters.')
-
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError('This email is already in use.')
-
-        if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError('This username is already in use.')
         
         if username == 'me':
             raise serializers.ValidationError('Invalid username')
+        
+        if User.objects.filter(email=email).exists():
+            if not User.objects.filter(username=username).exists():
+                raise serializers.ValidationError('This email is already in use.')
+            
+        if User.objects.filter(username=username).exists():
+            if not User.objects.filter(email=email).exists():
+                raise serializers.ValidationError('This email is already in use.')
 
         return data
         
@@ -103,8 +111,6 @@ class UsersSerializer(serializers.ModelSerializer):
         first_name = data.get('first_name')
         last_name = data.get('last_name')
 
-
-
         if email and len(email) > 254:
             raise serializers.ValidationError('Email address is too long.')
         
@@ -121,10 +127,12 @@ class UsersSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Email address is too long.')
         
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError('This email is already in use.')
+            if not User.objects.filter(username=username).exists():
+                raise serializers.ValidationError('This email is already in use.')
 
         if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError('This username is already in use.')
+            if not User.objects.filter(email=email).exists():
+                raise serializers.ValidationError('This username is already in use.')
         
         return data
 
