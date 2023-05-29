@@ -52,7 +52,7 @@ class Review(models.Model):
         verbose_name='Текст',
         help_text='Напишите свой отзыв'
     )
-    rating = models.PositiveIntegerField(
+    score = models.PositiveIntegerField(
         validators=[
             MinValueValidator(1, 'Значения от 1 до 10'),
             MaxValueValidator(10, 'Значения от 1 до 10')
@@ -71,8 +71,8 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы',
         constraints = (
             CheckConstraint(
-                check=Q(rating__lte=10),
-                name='rating_lte_10'),
+                check=Q(score__lte=10),
+                name='score_lte_10'),
             models.UniqueConstraint(
                 fields=('author', 'title'),
                 name='unique_reviewing'

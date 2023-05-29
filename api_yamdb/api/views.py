@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from reviews.models import Genre, Category, Title, Review
+from users.perrmissions import IsAdminOrReadOnly
 from .pagination import CommonPagination
 from .serializers import GenreSerializer, CategorySerializer, TitleCreateSerializer, TitleSerializer, CommentSerializer, ReviewSerializer
 from .permissions import AdminOrReadOnly
@@ -17,37 +18,44 @@ class GenreViewSet(CreateListDeleteViewset):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (AdminOrReadOnly,)
-    paginator_class = PageNumberPagination
+    pagination_class = CommonPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=name',)
-    lookup_field = 'slug'
+    
 
     def destroy(self, request, *args, **kwargs):
-        genre = get_object_or_404(Genre, slug=kwargs)
+        genre = get_object_or_404(Genre, slug=kwargs['pk'])
+        if request.user.is_admin:
+            self.perform_destroy(genre)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+    def perform_destroy(self, genre):
         genre.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        
 
 
 class CategoryViewSet(CreateListDeleteViewset):
     queryset =Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminOrReadOnly,)
-    paginator_class = PageNumberPagination
+    pagination_class = CommonPagination
     filter_backends = (filters.SearchFilter,)
     search_fields = ('=name',)
-    lookup_field = 'slug'
+    
 
     def destroy(self, request, *args, **kwargs):
-        category = get_object_or_404(Category, slug=kwargs)
+        category = get_object_or_404(Category, slug=kwargs['pk'])
+        if request.user.is_admin:
+            self.perform_destroy(category)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, category):
         category.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset =Title.objects.all()
-    serializer_class = TitleSerializer
     permission_classes = (AdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    paginator_class = PageNumberPagination
+    pagination_class = CommonPagination
     filterset_fields = ('category', 'genre', 'name', 'year',)
 
     def get_serializer_class(self):

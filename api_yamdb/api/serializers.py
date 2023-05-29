@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Genre, Category,Title, Comment, Review
+from rest_framework.validators import UniqueValidator
 from datetime import datetime
 from django.shortcuts import get_object_or_404
 
@@ -11,13 +12,13 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug')
-        lookup_field = 'slug'
+        
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):  
     class Meta:
         fields = ('name', 'slug')
         model = Category
-        lookup_field = 'slug'
+       
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -46,11 +47,14 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         required=True,
         )
-    
-
+    rating = serializers.FloatField(
+        source = 'reviews__score__avg',
+        read_only=True
+    )
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category',)
         model = Title
+        
 
     def validate_year(self, value):
         year = datetime.today().year
@@ -74,14 +78,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
-    rating = serializers.IntegerField(
+    score = serializers.IntegerField(
         min_value=1,
         max_value=10
     )
 
     class Meta:
         model = Review
-        fields = ('id', 'author', 'text', 'rating', 'pub_date',)
+        fields = ('id', 'author', 'text', 'score', 'pub_date',)
 
     def validate(self, data):
         if self.context['request'].method != 'POST':
