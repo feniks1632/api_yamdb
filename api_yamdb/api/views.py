@@ -10,6 +10,7 @@ from users.perrmissions import IsAdminOrReadOnly
 from .pagination import CommonPagination
 from .serializers import GenreSerializer, CategorySerializer, TitleCreateSerializer, TitleSerializer, CommentSerializer, ReviewSerializer
 from .permissions import AdminOrReadOnly
+from .filters import TitleFilter
 
 class CreateListDeleteViewset(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     pass
@@ -55,11 +56,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset =Title.objects.all()
     permission_classes = (AdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
     pagination_class = CommonPagination
-    filterset_fields = ('category', 'genre', 'name', 'year',)
+    
 
     def get_serializer_class(self):
-        if self.action == 'list' or 'retrieve':
+        if self.action in ('list', 'retrieve'):
             return TitleSerializer
         return TitleCreateSerializer
     

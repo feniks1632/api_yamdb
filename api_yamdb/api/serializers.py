@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from reviews.models import Genre, Category,Title, Comment, Review
@@ -21,17 +22,20 @@ class CategorySerializer(serializers.ModelSerializer):
        
 
 
+
+
+
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer(many=False)
-    rating = serializers.FloatField(
-        source = 'reviews__score__avg',
-        read_only=True
-    )
+    rating = serializers.SerializerMethodField(read_only = True)
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category',)
         model = Title
+    
+    def get_rating(self, obj):
+        return obj.rewiews.all().aggregate(Avg('score')) ['score__avg']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -43,17 +47,13 @@ class TitleCreateSerializer(serializers.ModelSerializer):
         )
     category = SlugRelatedField (
         slug_field = 'slug',
-        many=True,
         queryset=Category.objects.all(),
         required=True,
         )
-    rating = serializers.FloatField(
-        source = 'reviews__score__avg',
-        read_only=True
-    )
     class Meta:
-        fields = ('id', 'name', 'year', 'rating', 'description', 'genre', 'category',)
         model = Title
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)
+        read_only_fields = ('genre', 'category',)
         
 
     def validate_year(self, value):
