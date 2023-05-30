@@ -1,17 +1,23 @@
-import codecs
-from csv import DictReader
 from django.core.management import BaseCommand
-from reviews.models import (
-   Title, Genre, Category, Review, Comment
-)
+
+from csv import DictReader
+import codecs
+
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        with codecs.open('static/data/category.csv', 'r', encoding='utf-8') as f:
+        with codecs.open(
+            'static/data/category.csv',
+                'r', encoding='utf-8') as f:
             for row in DictReader(f):
-                category = Category(name=row['name'], id=row['id'], slug=row['slug'])
+                category = Category(
+                    name=row['name'],
+                    id=row['id'],
+                    slug=row['slug']
+                )
                 category.save()
 
         with codecs.open('static/data/genre.csv', 'r', encoding='utf-8') as f:
@@ -54,7 +60,8 @@ class Command(BaseCommand):
                 )
                 review.save()
 
-        with codecs.open('static/data/comments.csv', 'r', encoding='utf-8') as f:
+        with codecs.open(
+                'static/data/comments.csv', 'r', encoding='utf-8') as f:
             for row in DictReader(f):
                 comment = Comment(
                     id=row['id'],
