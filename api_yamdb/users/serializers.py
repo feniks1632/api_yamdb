@@ -1,11 +1,14 @@
+from http import HTTPStatus
 import random
 import re
-from http import HTTPStatus
+
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
-from django.core.mail import send_mail
-from .models import User, ROLE_CHOISES
+
+from .models import ROLE_CHOISES, User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -55,7 +58,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         username = validated_data.get('username')
         code = random.randint(100000, 999999)
 
-        # Сохраняем пользователя
         if not User.objects.filter(username=username).exists():
             user = User.objects.create_user(email=email, username=username,
                                             confirmation_code=code)
@@ -164,7 +166,7 @@ class UsersSerializer(serializers.ModelSerializer):
                                         bio=bio,
                                         role=role)
 
-        return user 
+        return user
 
     def partial_update(self, validate_date):
         role = validate_date('role')

@@ -1,11 +1,11 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
 from django.db.models import Q
 from django.db.models.constraints import CheckConstraint
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=256, unique=True)
@@ -22,6 +22,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+
 class Title(models.Model):
     name = models.CharField(max_length=256)
     year = models.IntegerField()
@@ -30,11 +31,17 @@ class Title(models.Model):
         Genre,
         verbose_name='Жанр',
         through='GenreTitle',)
-    category = models.ForeignKey(Category, related_name='titles', on_delete=models.SET_NULL, blank=True, null=True)
-
+    category = models.ForeignKey(
+        Category,
+        related_name='titles',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True
+    )
 
     def __str__(self):
         return self.name
+
 
 class GenreTitle(models.Model):
     title_id = models.ForeignKey(
