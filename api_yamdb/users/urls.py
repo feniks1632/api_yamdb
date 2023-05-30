@@ -13,7 +13,5 @@ router.register(r'api/v1/users', UsersView)
 # )
 
 
-urlpatterns = [
-    path('', include(router.urls)),
 
-]
+

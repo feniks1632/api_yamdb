@@ -1,15 +1,15 @@
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.decorators import action
 from .serializers import SignUpSerializer, TokenSerializer, UsersSerializer
 from .models import User
 from .perrmissions import IsAdmin
 from .pagination import CustomPagination
+
 
 class SignUpView(generics.CreateAPIView):
     serializer_class = SignUpSerializer
@@ -19,26 +19,39 @@ class SignUpView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        email = serializer.validated_data['email']
+        username = serializer.validated_data['username']
+        existing_user = User.objects.filter(email=email,
+                                            username=username,).first()
+        if existing_user:
+            response_data = {
+                'email': existing_user.email,
+                'username': existing_user.username,
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
         response_data = {
             'email': user.email,
             'username': user.username,
         }
-        return Response(response_data, status=status.HTTP_200_OK)
-    
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+
 class TokenView(APIView):
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data)
-    
+
+
 class UsersView(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('id').distinct()
     serializer_class = UsersSerializer
-    permission_classes = [IsAdmin ]
+    permission_classes = [IsAdmin]
     filter_backends = [SearchFilter]
     search_fields = ('username',)
     pagination_class = CustomPagination
-
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -48,17 +61,17 @@ class UsersView(viewsets.ModelViewSet):
         username = self.kwargs[self.lookup_field]
         obj = get_object_or_404(User, username=username)
         return obj
-    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         serializer = UsersSerializer(user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
+
     def update(self, request, *args, **kwargs):
         return self.http_method_not_allowed(request, *args, **kwargs)
-    
+
     def partial_update(self, request, *args, **kwargs):
         username = self.kwargs[self.lookup_field]
         user = get_object_or_404(User, username=username)
@@ -66,8 +79,10 @@ class UsersView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-    
-    @action(detail=False, methods=['get', 'patch'], permission_classes = [IsAuthenticated])  
+
+    @action(detail=False,
+            methods=['get', 'patch'],
+            permission_classes=[IsAuthenticated])
     def me(self, request):
         user = request.user
         request_data = request.data.copy()
@@ -77,5 +92,3 @@ class UsersView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
-    
