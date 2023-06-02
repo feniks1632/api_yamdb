@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Q
+from django.db.models import Count, Min
 from django.db.models.constraints import CheckConstraint
 from django.contrib.auth import get_user_model
 
@@ -13,6 +14,10 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = 'Жанр'
+        ordering = ['name']
 
 
 class Category(models.Model):
@@ -21,6 +26,16 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+    
+    @property
+    def titles_count(self):
+        return self.titles.annotate(
+            num_genres=Count('genre')
+        ).count()
+
+    class Meta:
+        verbose_name = 'Категория'
+        ordering = ['name']
 
 
 class Title(models.Model):
@@ -38,9 +53,18 @@ class Title(models.Model):
         blank=True,
         null=True
     )
+    rating = models.IntegerField(
+        verbose_name='Рейтинг',
+        null=True,
+        default=None
+    )
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = 'Произведение'
+        ordering = ['name']
 
 
 class GenreTitle(models.Model):
@@ -94,7 +118,7 @@ class Review(models.Model):
     )
 
     class Meta:
-        ordering = ('-pub_date',)
+        ordering = ('pub_date',)
         verbose_name = 'Отзыв',
         verbose_name_plural = 'Отзывы',
         constraints = (
@@ -136,7 +160,7 @@ class Comment(models.Model):
     class Meta:
         verbose_name = 'Комментарий',
         verbose_name_plural = 'Комментарии',
-        ordering = ('-pub_date',)
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.text[:25]

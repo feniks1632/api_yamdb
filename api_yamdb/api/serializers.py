@@ -2,7 +2,6 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
 
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -33,7 +32,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer(many=False)
-    rating = serializers.SerializerMethodField(read_only=True)
+    rating = serializers.IntegerField(read_only=True, source='avg_rating')
 
     class Meta:
         fields = (
@@ -46,9 +45,6 @@ class TitleSerializer(serializers.ModelSerializer):
             'category',
         )
         model = Title
-
-    def get_rating(self, obj):
-        return obj.rewiews.all().aggregate(Avg('score'))['score__avg']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -122,15 +118,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        if self.context['request'].method != 'POST':
-            return data
+        request = self.context['request']
         title = get_object_or_404(
             Title,
             id=self.context['request'].parser_context['kwargs']['title_id']
         )
-        if Review.objects.filter(
-            author=self.context['request'].user,
-            title=title
-        ).exists():
-            raise serializers.ValidationError('Отзыв уже оставлен')
+        if request.method == 'POST':
+            if Review.objects.filter(author=self.context['request'].user,
+                                     title=title).exists():
+                raise serializers.ValidationError('Отзыв уже оставлен')
         return data

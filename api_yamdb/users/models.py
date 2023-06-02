@@ -1,11 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-ROLE_CHOISES = (
-    ('user', 'Пользователь'),
-    ('moderator', 'Модератор'),
-    ('admin', 'Администратор')
-)
+
+class Role(models.TextChoices):
+    user = 'user', 'Пользователь'
+    moderator = 'moderator', 'Модератор'
+    admin = 'admin', 'Администратор'
+
+    def __str__(self):
+        return self.name
 
 
 class User(AbstractUser):
@@ -34,9 +37,9 @@ class User(AbstractUser):
     )
     role = models.CharField(
         'Роль пользователя',
-        choices=ROLE_CHOISES,
+        choices=Role.choices,
         max_length=20,
-        default='user'
+        default=Role.user
     )
     confirmation_code = models.CharField(
         'Поле с кодом подтверждения',
@@ -45,7 +48,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return (self.role == 'admin' or self.is_superuser)
+        return self.role == 'admin' or self.is_superuser
 
     @property
     def is_moderator(self):
@@ -53,3 +56,9 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.username}'
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Пользователь'
+ 
+

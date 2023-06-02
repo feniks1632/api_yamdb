@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 
+
 from rest_framework import generics, status, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +10,6 @@ from rest_framework.decorators import action
 
 from .models import User
 from .perrmissions import IsAdmin
-from .pagination import CustomPagination
 from .serializers import SignUpSerializer, TokenSerializer, UsersSerializer
 
 
@@ -48,28 +48,17 @@ class TokenView(APIView):
 
 
 class UsersView(viewsets.ModelViewSet):
-    queryset = User.objects.all().order_by('id').distinct()
+    queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = [IsAdmin]
     filter_backends = [SearchFilter]
     search_fields = ('username',)
-    pagination_class = CustomPagination
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset
-
-    def get_object(self):
+    def retrieve(self, request, pk=None):
         username = self.kwargs[self.lookup_field]
-        obj = get_object_or_404(User, username=username)
-        return obj
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        serializer = UsersSerializer(user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        instance = get_object_or_404(User, username=username)
+        return Response(self.serializer_class(instance).data,
+                        status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         return self.http_method_not_allowed(request, *args, **kwargs)
@@ -81,6 +70,12 @@ class UsersView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        username = self.kwargs[self.lookup_field]
+        user = get_object_or_404(User, username=username)
+        self.perform_destroy(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             methods=['get', 'patch'],

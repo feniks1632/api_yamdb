@@ -1,4 +1,3 @@
-from http import HTTPStatus
 import random
 import re
 
@@ -8,7 +7,7 @@ from django.core.mail import send_mail
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 
-from .models import ROLE_CHOISES, User
+from .models import Role, User
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -50,6 +49,8 @@ class SignUpSerializer(serializers.ModelSerializer):
             if not User.objects.filter(email=email).exists():
                 raise serializers.ValidationError('Такой пользователь'
                                                   ' уже существует.')
+
+        data = super().validate(data)
 
         return data
 
@@ -96,8 +97,8 @@ class UsersSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(required=False)
     bio = serializers.CharField(required=False)
     role = serializers.ChoiceField(required=False,
-                                   choices=ROLE_CHOISES,
-                                   default="user",)
+                                   choices=Role.choices,
+                                   default=Role.user,)
 
     class Meta:
         fields = ('username',
@@ -147,6 +148,8 @@ class UsersSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Такой пользователь'
                                                   ' уже существует.')
 
+        data = super().validate(data)
+
         return data
 
     def create(self, validated_data):
@@ -167,8 +170,3 @@ class UsersSerializer(serializers.ModelSerializer):
                                         role=role)
 
         return user
-
-    def partial_update(self, validate_date):
-        role = validate_date('role')
-        if role not in ROLE_CHOISES:
-            return HTTPStatus.BAD_REQUEST
