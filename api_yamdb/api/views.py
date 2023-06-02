@@ -57,7 +57,7 @@ class CategoryViewSet(CreateListDeleteViewset):
     search_fields = ('=name',)
 
     def get_queryset(self):
-        queryset = Category.objects.annotate(
+        queryset = Category.objects.order_by('name').annotate(
             num_titles=Count('titles'),
         )
         return queryset
@@ -77,7 +77,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitlesFilter
 
     def get_queryset(self):
-        queryset = Title.objects.all().annotate(
+        queryset = Title.objects.order_by('name').annotate(
             avg_rating=Avg('rewiews__score')
         )
         return queryset

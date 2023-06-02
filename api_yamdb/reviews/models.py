@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Q
-from django.db.models import Count, Min
+from django.db.models import Count
 from django.db.models.constraints import CheckConstraint
 from django.contrib.auth import get_user_model
 
@@ -14,7 +14,7 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     class Meta:
         verbose_name = 'Жанр'
         ordering = ['name']
@@ -26,7 +26,7 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     @property
     def titles_count(self):
         return self.titles.annotate(
@@ -61,7 +61,7 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-    
+
     class Meta:
         verbose_name = 'Произведение'
         ordering = ['name']
