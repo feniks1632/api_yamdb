@@ -1,79 +1,104 @@
 from django.core.management import BaseCommand
 
-from csv import DictReader
-import codecs
-
-from reviews.models import Category, Comment, Genre, Review, Title
+from django.core.management import BaseCommand
+from reviews.models import (
+   Title, Genre, Category, Review, Comment, GenreTitle
+)
 from users.models import User
-
+import pandas as pd
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        with codecs.open(
-            'static/data/category.csv',
-                'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                category = Category(
-                    name=row['name'],
-                    id=row['id'],
-                    slug=row['slug']
-                )
-                category.append(category)
-                Category.objects.bulk_create(Category)
+        data=pd.read_csv('static/data/genre.csv')
+        row_iter = data.iterrows()
+        genres = [
+            Genre(
+                id = row['id'],
+                name = row['name'],
+                slug = row['slug'],
+            )
+            for index, row in row_iter
+        ]
+        Genre.objects.bulk_create(genres,)
+        
+        data=pd.read_csv('static/data/category.csv')
+        row_iter = data.iterrows()
+        categories = [
+            Category(
+                id = row['id'],
+                name = row['name'],
+                slug = row['slug'],
+            )
+            for index, row in row_iter
+        ]
+        Category.objects.bulk_create(categories,)
 
-        with codecs.open('static/data/genre.csv', 'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                genre = Genre(name=row['name'], id=row['id'], slug=row['slug'])
-                genre.append(genre)
-                Genre.objects.bulk_create(Genre)
+        data=pd.read_csv('static/data/titles.csv')
+        row_iter = data.iterrows()
+        titles = [
+            Title(
+                id = row['id'],
+                name = row['name'],
+                year = row['year'],
+                category = Category.objects.get(pk=row['category']),
+            )
+            for index, row in row_iter
+        ]
+        Title.objects.bulk_create(titles,)
+        
+        data=pd.read_csv('static/data/genre_title.csv')
+        row_iter = data.iterrows()
+        genres_titles = [
+            GenreTitle(
+                id = row['id'],
+                title_id = Title.objects.get(pk=row['title_id']),
+                genre_id = Genre.objects.get(pk=row['genre_id']),
+            )
+            for index, row in row_iter
+        ]
+        GenreTitle.objects.bulk_create(genres_titles,)
 
-        with codecs.open('static/data/titles.csv', 'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                title = Title(
-                    name=row['name'],
-                    id=row['id'],
-                    year=row['year'],
-                    category=Category.objects.get(pk=row['category'])
-                )
-                title.append(title)
-                Title.objects.bulk_create(Title)
+        data=pd.read_csv('static/data/users.csv')
+        row_iter = data.iterrows()
+        users = [
+            User(
+                id = row['id'],
+                username = row['username'],
+                email = row['email'],
+                role = row['role'],
+                bio = row['bio'],
+                first_name = ['first_name'],
+                last_name = ['last_name'],
+            )
+            for index, row in row_iter
+        ]
+        User.objects.bulk_create(users,)
 
-        with codecs.open('static/data/users.csv', 'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                user = User(
-                    id=row['id'],
-                    username=row['username'],
-                    email=row['email'],
-                    role=row['role'],
-                    bio=row['bio'],
-                    first_name=row['first_name'],
-                    last_name=row['last_name']
-                )
-                user.append(user)
-                User.objects.bulk_create(User)
+        data=pd.read_csv('static/data/review.csv')
+        row_iter = data.iterrows()
+        reviews = [
+            Review(
+                id = row['id'],
+                title = Title.objects.get(pk=row['title_id']),
+                text = row['text'],
+                author = User.objects.get(pk=row['author']),
+                score = row['score'],
+                pub_date = row['pub_date'],
+            )
+            for index, row in row_iter
+        ]
+        Review.objects.bulk_create(reviews,)
 
-        with codecs.open('static/data/review.csv', 'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                review = Review(
-                    id=row['id'],
-                    title=Title.objects.get(pk=row['title_id']),
-                    text=row['text'],
-                    author=User.objects.get(pk=row['author']),
-                    score=row['score'],
-                    pub_date=row['pub_date']
-                )
-                review.append(review)
-                Review.objects.bulk_create(Review)
-
-        with codecs.open(
-                'static/data/comments.csv', 'r', encoding='utf-8') as f:
-            for row in DictReader(f):
-                comment = Comment(
-                    id=row['id'],
-                    review=Review.objects.get(pk=row['review_id']),
-                    text=row['text'],
-                    author=User.objects.get(pk=row['author']),
-                    pub_date=row['pub_date']
-                )
-                comment.append(comment)
-                Comment.objects.bulk_create(Comment)
+        data=pd.read_csv('static/data/comments.csv')
+        row_iter = data.iterrows()
+        comments = [
+            Comment(
+                id = row['id'],
+                review = Review.objects.get(pk=row['review_id']),
+                text = row['text'],
+                author = User.objects.get(pk=row['author']),
+                pub_date = row['pub_date'],
+            )
+            for index, row in row_iter
+        ]
+        Comment.objects.bulk_create(comments,)
