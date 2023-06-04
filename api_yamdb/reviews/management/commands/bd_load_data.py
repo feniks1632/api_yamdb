@@ -18,12 +18,14 @@ class Command(BaseCommand):
                     id=row['id'],
                     slug=row['slug']
                 )
-                category.save()
+                category.append(category)
+                Category.objects.bulk_create(Category)
 
         with codecs.open('static/data/genre.csv', 'r', encoding='utf-8') as f:
             for row in DictReader(f):
                 genre = Genre(name=row['name'], id=row['id'], slug=row['slug'])
-                genre.save()
+                genre.append(genre)
+                Genre.objects.bulk_create(Genre)
 
         with codecs.open('static/data/titles.csv', 'r', encoding='utf-8') as f:
             for row in DictReader(f):
@@ -33,7 +35,8 @@ class Command(BaseCommand):
                     year=row['year'],
                     category=Category.objects.get(pk=row['category'])
                 )
-                title.save()
+                title.append(title)
+                Title.objects.bulk_create(Title)
 
         with codecs.open('static/data/users.csv', 'r', encoding='utf-8') as f:
             for row in DictReader(f):
@@ -46,7 +49,8 @@ class Command(BaseCommand):
                     first_name=row['first_name'],
                     last_name=row['last_name']
                 )
-                user.save()
+                user.append(user)
+                User.objects.bulk_create(User)
 
         with codecs.open('static/data/review.csv', 'r', encoding='utf-8') as f:
             for row in DictReader(f):
@@ -58,7 +62,8 @@ class Command(BaseCommand):
                     score=row['score'],
                     pub_date=row['pub_date']
                 )
-                review.save()
+                review.append(review)
+                Review.objects.bulk_create(Review)
 
         with codecs.open(
                 'static/data/comments.csv', 'r', encoding='utf-8') as f:
@@ -70,4 +75,5 @@ class Command(BaseCommand):
                     author=User.objects.get(pk=row['author']),
                     pub_date=row['pub_date']
                 )
-                comment.save()
+                comment.append(comment)
+                Comment.objects.bulk_create(Comment)

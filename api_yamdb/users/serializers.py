@@ -130,7 +130,9 @@ class UsersSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Недопустимые символы.')
 
         if username and len(username) > 150:
-            raise serializers.ValidationError('Имя слишком длинное')
+            raise serializers.ValidationError(
+                'Имя пользователя слишком длинное'
+            )
 
         if first_name and len(first_name) > 150:
             raise serializers.ValidationError('Имя слишком длинное')

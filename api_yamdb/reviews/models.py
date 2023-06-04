@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import Q
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.constraints import CheckConstraint
 from django.contrib.auth import get_user_model
 
