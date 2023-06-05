@@ -93,7 +93,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CommentsViewset(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [
-        IsModeratorOrReadOnly|IsAuthorOrReadOnly|IsAdminOrReadOnly]
+        IsModeratorOrReadOnly | IsAuthorOrReadOnly | IsAdminOrReadOnly]
 
     def get_review(self):
         return get_object_or_404(Review, id=self.kwargs.get('review_id'))
@@ -110,7 +110,7 @@ class CommentsViewset(viewsets.ModelViewSet):
 class ReviewsViewset(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
-        IsModeratorOrReadOnly|IsAuthorOrReadOnly|IsAdminOrReadOnly]
+        IsModeratorOrReadOnly | IsAuthorOrReadOnly | IsAdminOrReadOnly]
     filter_backends = (filters.OrderingFilter,)
 
     def get_title(self):
