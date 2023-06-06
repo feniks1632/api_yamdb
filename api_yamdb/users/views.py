@@ -21,16 +21,8 @@ class SignUpView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        email = serializer.validated_data['email']
-        username = serializer.validated_data['username']
-        existing_user = User.objects.filter(email=email,
-                                            username=username,).first()
-        if existing_user:
-            response_data = {
-                'email': existing_user.email,
-                'username': existing_user.username,
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+        if user:
+            return Response(request.data, status=status.HTTP_200_OK)
 
         response_data = {
             'email': user.email,
@@ -47,20 +39,13 @@ class TokenView(APIView):
 
 
 class UsersView(viewsets.ModelViewSet):
+    lookup_field = "username"
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = [IsAdmin]
     filter_backends = [SearchFilter]
     search_fields = ('username',)
-
-    def retrieve(self, request, pk=None):
-        username = self.kwargs[self.lookup_field]
-        instance = get_object_or_404(User, username=username)
-        return Response(self.serializer_class(instance).data,
-                        status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
-        return self.http_method_not_allowed(request, *args, **kwargs)
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def partial_update(self, request, *args, **kwargs):
         username = self.kwargs[self.lookup_field]
@@ -69,12 +54,6 @@ class UsersView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
-
-    def destroy(self, request, *args, **kwargs):
-        username = self.kwargs[self.lookup_field]
-        user = get_object_or_404(User, username=username)
-        self.perform_destroy(user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             methods=['get', 'patch'],

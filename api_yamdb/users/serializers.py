@@ -32,23 +32,20 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Email слишком длинный.')
 
         if len(username) > 150:
-            raise serializers.ValidationError('Имя слишком длинное.')
+            raise serializers.ValidationError('Username слишком длинный.')
 
         if not re.match(r'^[\w.@+-]+\Z', username):
             raise serializers.ValidationError('Недопустимые символы.')
 
         if username == 'me':
-            raise serializers.ValidationError('Недопустимое имя пользовтеля')
+            raise serializers.ValidationError('Недопустимый username')
 
-        if User.objects.filter(email=email).exists():
-            if not User.objects.filter(username=username).exists():
-                raise serializers.ValidationError('Такой пользователь'
-                                                  ' уже существует.')
-
-        if User.objects.filter(username=username).exists():
-            if not User.objects.filter(email=email).exists():
-                raise serializers.ValidationError('Такой пользователь'
-                                                  ' уже существует.')
+        if ((User.objects.filter(email=email).exists()
+             and not User.objects.filter(username=username).exists())
+            or (User.objects.filter(username=username).exists()
+                and not User.objects.filter(email=email).exists())):
+            raise serializers.ValidationError('Такой пользователь '
+                                              'уже существует.')
 
         data = super().validate(data)
 
@@ -131,7 +128,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
         if username and len(username) > 150:
             raise serializers.ValidationError(
-                'Имя пользователя слишком длинное'
+                'Username слишком длинный'
             )
 
         if first_name and len(first_name) > 150:
@@ -140,15 +137,12 @@ class UsersSerializer(serializers.ModelSerializer):
         if last_name and len(last_name) > 150:
             raise serializers.ValidationError('Фамилия слишком длинная')
 
-        if User.objects.filter(email=email).exists():
-            if not User.objects.filter(username=username).exists():
-                raise serializers.ValidationError('Такой пользователь'
-                                                  ' уже существует.')
-
-        if User.objects.filter(username=username).exists():
-            if not User.objects.filter(email=email).exists():
-                raise serializers.ValidationError('Такой пользователь'
-                                                  ' уже существует.')
+        if ((User.objects.filter(email=email).exists()
+             and not User.objects.filter(username=username).exists())
+            or (User.objects.filter(username=username).exists()
+                and not User.objects.filter(email=email).exists())):
+            raise serializers.ValidationError('Такой пользователь '
+                                              'уже существует.')
 
         data = super().validate(data)
 
