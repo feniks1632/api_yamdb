@@ -3,6 +3,7 @@ import re
 
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
+from django.db.models import Q
 
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
@@ -25,8 +26,8 @@ class SignUpSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, data):
-        email = data.get('email')
-        username = data.get('username')
+        email = data.get('email').lower()
+        username = data.get('username').lower()
 
         if len(email) > 254:
             raise serializers.ValidationError('Email слишком длинный.')
@@ -40,16 +41,13 @@ class SignUpSerializer(serializers.ModelSerializer):
         if username == 'me':
             raise serializers.ValidationError('Недопустимый username')
 
-        if ((User.objects.filter(email=email).exists()
-             and not User.objects.filter(username=username).exists())
-            or (User.objects.filter(username=username).exists()
-                and not User.objects.filter(email=email).exists())):
+        if (User.objects.filter(
+            Q(email=email) | Q(username=username)).exclude(
+                email=email, username=username).exists()):
             raise serializers.ValidationError('Такой пользователь '
                                               'уже существует.')
 
-        data = super().validate(data)
-
-        return data
+        return super().validate(data)
 
     def create(self, validated_data):
         email = validated_data.get('email')
@@ -137,16 +135,13 @@ class UsersSerializer(serializers.ModelSerializer):
         if last_name and len(last_name) > 150:
             raise serializers.ValidationError('Фамилия слишком длинная')
 
-        if ((User.objects.filter(email=email).exists()
-             and not User.objects.filter(username=username).exists())
-            or (User.objects.filter(username=username).exists()
-                and not User.objects.filter(email=email).exists())):
+        if (User.objects.filter(
+            Q(email=email) | Q(username=username)).exclude(
+                email=email, username=username).exists()):
             raise serializers.ValidationError('Такой пользователь '
                                               'уже существует.')
 
-        data = super().validate(data)
-
-        return data
+        return super().validate(data)
 
     def create(self, validated_data):
         email = validated_data.get('email')
